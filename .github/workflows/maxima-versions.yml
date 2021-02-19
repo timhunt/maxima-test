@@ -1,0 +1,30 @@
+name: Test getting different versions of Maxima
+
+on: [push]
+
+jobs:
+  build-maxima:
+    runs-on: ubuntu-18.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        lisp: ['sbcl', 'gcl', 'clisp']
+        maxima: ['5.38.1', '5.41.0', '5.44.0']
+
+    steps:
+      - name: Install required libraries
+        run: |
+          sudo apt-get install ${{ matrix.lisp }} texinfo
+
+      - name: Build Maxima
+        run: |
+          wget https://sourceforge.net/projects/maxima/files/Maxima-source/${{ matrix.maxima }}-source/maxima-${{ matrix.maxima }}.tar.gz
+          tar -zxf maxima-${{ matrix.maxima }}.tar.gz
+          cd maxima-${{ matrix.maxima }}/
+
+          ./configure --with-${{ matrix.lisp }}
+          make
+          sudo make install
+
+          maxima --list-avail
